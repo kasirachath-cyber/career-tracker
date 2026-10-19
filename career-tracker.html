@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>90-Day Career & Habit Tracker - กิ๊ฟ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f8fafc;
+    }
+    .custom-checkbox:checked + div {
+      background-color: #10b981;
+      border-color: #10b981;
+    }
+    .custom-checkbox:checked + div svg {
+      display: block;
+    }
+    .bar-fill {
+      transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-16">
+
+  <!-- Header & Overall Progress -->
+  <header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 sm:py-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
+            🚀 Road to Data & Marketing Ops
+          </span>
+          <h1 class="text-xl sm:text-2xl font-bold">แดชบอร์ดติดตามภารกิจ 90 วันของกิ๊ฟ</h1>
+        </div>
+
+        <!-- KPI Summary Pills -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="bg-white/15 backdrop-blur-md px-3.5 py-2 rounded-xl flex items-center gap-2.5">
+            <span class="text-2xl">🔥</span>
+            <div>
+              <div class="text-[11px] text-white/80 leading-none">ทำต่อเนื่อง (Streak)</div>
+              <div class="text-lg font-bold leading-tight"><span id="streakCount">0</span> วัน</div>
+            </div>
+          </div>
+
+          <div class="bg-white/15 backdrop-blur-md px-3.5 py-2 rounded-xl flex items-center gap-2.5">
+            <span class="text-2xl">💻</span>
+            <div>
+              <div class="text-[11px] text-white/80 leading-none">ภารกิจอัปสกิล</div>
+              <div class="text-lg font-bold leading-tight"><span id="studyDoneCount">0</span>/84</div>
+            </div>
+          </div>
+
+          <div class="bg-white/15 backdrop-blur-md px-3.5 py-2 rounded-xl flex items-center gap-2.5">
+            <span class="text-2xl">✨</span>
+            <div>
+              <div class="text-[11px] text-white/80 leading-none">ความสำเร็จรวม</div>
+              <div class="text-lg font-bold leading-tight" id="overallPercent">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Bar -->
+      <div class="mt-3 bg-black/20 rounded-full h-2 overflow-hidden">
+        <div id="overallBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+
+    <!-- Control Bar: Select Month & Week -->
+    <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="selectMonth(1)" id="monthBtn1" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+          📅 เดือนที่ 1: SQL & Metrics
+        </button>
+        <button onclick="selectMonth(2)" id="monthBtn2" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+          📊 เดือนที่ 2: Power BI & Model
+        </button>
+        <button onclick="selectMonth(3)" id="monthBtn3" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+          ⚙️ เดือนที่ 3: MarTech & สมัครงาน
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label for="weekSelect" class="text-sm font-medium text-slate-600 whitespace-nowrap">เลือกสัปดาห์:</label>
+        <select id="weekSelect" onchange="selectWeek(parseInt(this.value))" class="bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 font-medium">
+        </select>
+      </div>
+    </section>
+
+    <!-- Top Grid: Weekly Analytics Chart & Month Goal -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left: Weekly Consistency Bar Chart -->
+      <section class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span>📈</span> แผนภูมิความสม่ำเสมอรายสัปดาห์
+            </h2>
+            <p class="text-xs text-slate-500" id="chartSubtitle">สัดส่วนการทำกิจวัตร 4 เวลา + ภารกิจหลัก (เต็ม 5 คะแนน/วัน)</p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400 block">คะแนนสัปดาห์นี้</span>
+            <span class="text-xl font-bold text-indigo-600" id="weekScoreText">0%</span>
+          </div>
+        </div>
+
+        <!-- Bar Chart Container -->
+        <div class="grid grid-cols-7 gap-2 sm:gap-4 items-end h-44 pt-6 pb-2 px-2 border-b border-slate-100" id="weeklyChart">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 mt-3 pt-1">
+          <div class="flex items-center gap-3">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block"></span> กำลังทำ</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span> ครบ 100%</span>
+          </div>
+          <button onclick="resetCurrentWeek()" class="text-rose-500 hover:underline">รีเซ็ตสัปดาห์นี้</button>
+        </div>
+      </section>
+
+      <!-- Right: Focus & All 12 Weeks Mini Overview -->
+      <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md" id="monthBadge">เดือนที่ 1</span>
+          <h3 class="text-base font-bold text-slate-800 mt-2" id="weekTitleDisplay">สัปดาห์ที่ 1</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed" id="monthGoalDisplay"></p>
+        </div>
+
+        <div class="my-4 border-t border-slate-100 pt-4">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+            <span>ภาพรวมทั้ง 12 สัปดาห์</span>
+            <span id="completedWeeksCount">0/12 สัปดาห์</span>
+          </div>
+          <div class="grid grid-cols-6 gap-2" id="twelveWeekMiniGrid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200/70 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
+          <span class="text-base">💡</span>
+          <div>
+            <strong>ทริคเล็กๆ:</strong> คลิกติ๊กถูกในตารางด้านล่างเพื่อบันทึกความก้าวหน้าของแต่ละวัน กราฟจะอัปเดตแบบเรียลไทม์ครับ!
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Daily Habit & Study Checklist Cards (7 Days of Selected Week) -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <span>✅</span> เช็กลิสต์ประจำวัน (กิจวัตรรักตัวเอง + อัปสกิล)
+        </h2>
+        <button onclick="checkAllWeek()" class="text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition">
+          ติ๊กถูกทั้งสัปดาห์
+        </button>
+      </div>
+
+      <div id="daysContainer" class="space-y-3">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 1. Data Structure for 12 Weeks (84 Days)
+    const monthsInfo = {
+      1: {
+        name: "เดือนที่ 1: SQL & Marketing Metrics",
+        goal: "เป้าหมาย: เขียน SQL ดึงข้อมูลได้คล่อง และเข้าใจสูตรคำนวณตัวชี้วัดการตลาดทั้งหมด"
+      },
+      2: {
+        name: "เดือนที่ 2: Power BI, Power Query & Data Modeling",
+        goal: "เป้าหมาย: ปั้นข้อมูลดิบให้เป็นโมเดลที่แข็งแรง และสร้าง Dashboard ระดับโปรเจกต์พอร์ตโฟลิโอ"
+      },
+      3: {
+        name: "เดือนที่ 3: Marketing Tech, Workflow & สมัครงาน",
+        goal: "เป้าหมาย: เชื่อมต่อระบบการตลาดอัตโนมัติ (MktOps) อัปเกรดพอร์ต/เรซูเม่ และพร้อมลุยตลาดงาน"
+      }
+    };
+
+    const dailyRoutineTemplate = [
+      { dayName: "จันทร์", short: "จ.", m: "🌅 08:00 ฟังอิ๊งระหว่างเดินทาง", e: "🏃‍♀️ 18:30 ออกกำลังกาย (วันที่ 1)", n: "💻 20:30 เรียนตามตาราง (1 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "อังคาร", short: "อ.", m: "🌅 08:00 ฟังอิ๊งระหว่างเดินทาง", e: "🏃‍♀️ 18:30 ออกกำลังกาย (วันที่ 2)", n: "💻 20:30 เรียนตามตาราง (1 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "พุธ", short: "พ.", m: "🌅 08:00 ฟังอิ๊งระหว่างเดินทาง", e: "🍃 18:30 พักกล้ามเนื้อ / เดินเล่นชิลๆ", n: "💻 20:30 เรียนตามตาราง (1 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "พฤหัสบดี", short: "พฤ.", m: "🌅 08:00 ฟังอิ๊งระหว่างเดินทาง", e: "🏃‍♀️ 18:30 ออกกำลังกาย (วันที่ 3)", n: "💻 20:30 เรียนตามตาราง (1 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "ศุกร์", short: "ศ.", m: "🌅 08:00 ฟังอิ๊งระหว่างเดินทาง", e: "🍰 18:30 พักกล้ามเนื้อ / ทานของอร่อย", n: "💻 20:30 เรียนตามตาราง (1 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "เสาร์", short: "ส.", m: "🏃‍♀️ 09:00 ออกกำลังกายเช้า", e: "🧶 พักผ่อน / งานอดิเรก", n: "🛠️ 10:30 Workshop (2 ชม.)", b: "📖 21:30 ศัพท์/โจทย์ TOEIC 20 นาที" },
+      { dayName: "อาทิตย์", short: "อา.", m: "🛌 พักผ่อนตื่นสายได้", e: "🏊‍♀️ พักผ่อน / สัปดาห์ที่ 4 ไปเล่นน้ำ", n: "🎉 Free Day (งดเรียน)", b: "📖 21:30 ทบทวนศัพท์เบาๆ 20 นาที" }
+    ];
+
+    const weeksData = [
+      {
+        week: 1, month: 1, title: "สัปดาห์ที่ 1: ปูพื้นฐาน SQL + ศัพท์ Performance เบื้องต้น",
+        tasks: [
+          "เรียน SELECT, FROM, WHERE + ทำความเข้าใจศัพท์ Impressions, Reach, Clicks",
+          "เรียนการกรองข้อมูล AND, OR, IN, BETWEEN + ศัพท์ CTR (Click-Through Rate) และ Bounce Rate",
+          "เรียน ORDER BY, LIMIT + ศัพท์ Conversion และ CVR (Conversion Rate)",
+          "เรียน Aggregate Functions (COUNT, SUM, AVG) + ศัพท์ Cost, Revenue, CPC (Cost Per Click)",
+          "เรียน GROUP BY และ HAVING + ฝึกเขียนสูตรหาค่าเฉลี่ยต้นทุนโฆษณาแยกตามแคมเปญ",
+          "Workshop 2 ชม.: รวมร่าง! เขียน SQL คำนวณหา CTR, CPC, และ CVR จากตารางข้อมูลจำลอง แยกตามช่องทางโฆษณา",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 2, month: 1, title: "สัปดาห์ที่ 2: การเชื่อมตาราง (JOINs) + ศัพท์ Lead & Funnel",
+        tasks: [
+          "เรียน INNER JOIN และ LEFT JOIN + ศัพท์ Marketing Funnel (Awareness, Consideration, Conversion)",
+          "เรียน RIGHT JOIN, FULL OUTER JOIN + ศัพท์ Lead, MQL (Marketing Qualified Lead), SQL (Sales Qualified Lead)",
+          "เรียน UNION vs UNION ALL + ศัพท์ CPL (Cost Per Lead) และ CPA (Cost Per Acquisition)",
+          "ฝึกแก้โจทย์ JOIN 2-3 ตารางเข้าด้วยกัน (เช่น ตารางแคมเปญ + ตารางรายชื่อ Lead)",
+          "เรียนเรื่อง CASE WHEN (การสร้างเงื่อนไขแบ่งกลุ่ม) + ศัพท์ Lead Scoring",
+          "Workshop 2 ชม.: เขียน SQL เชื่อมตารางแคมเปญเข้ากับตารางยอดขายจริง และใช้ CASE WHEN แบ่งเกรดลูกค้าหรือสถานะ MQL/SQL",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 3, month: 1, title: "สัปดาห์ที่ 3: Date Functions, Subqueries + ศัพท์การเงินการตลาด",
+        tasks: [
+          "เรียนจัดการวันที่ (DATE_TRUNC, DATEDIFF, EXTRACT) + ศัพท์ ROAS (Return on Ad Spend)",
+          "เรียนการจัดการข้อความและค่าว่าง (COALESCE, NULLIF, TRIM) + ศัพท์ ROI (Return on Investment)",
+          "เรียน Subqueries (การเขียน Query ซ้อน Query) + ศัพท์ CAC (Customer Acquisition Cost)",
+          "เรียน CTEs (WITH clause) เพื่อจัดระเบียบโค้ดให้อ่านง่าย + ศัพท์ AOV (Average Order Value)",
+          "ฝึกเขียน CTEs คำนวณเปรียบเทียบยอดขายและงบการตลาดรายเดือน (MoM - Month over Month)",
+          "Workshop 2 ชม.: เขียน SQL ด้วย CTEs เพื่อสร้างตารางสรุปงบการตลาด ยอดขาย ROAS และ CAC รายเดือน",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 4, month: 1, title: "สัปดาห์ที่ 4: Window Functions + ศัพท์ Customer Retention & Mini Project",
+        tasks: [
+          "เรียน Window Functions (ROW_NUMBER(), RANK(), DENSE_RANK()) + ศัพท์ LTV / CLV",
+          "เรียน LEAD(), LAG() (ดูข้อมูลย้อนหลัง/ถัดไป) + ศัพท์ Retention Rate และ Churn Rate",
+          "เรียนการทำ Running Total (SUM() OVER()) + ศัพท์ LTV : CAC Ratio",
+          "ซ้อมทำโจทย์ SQL สัมภาษณ์งานจริง (หาลูกค้าที่ซื้อซ้ำ, หาแคมเปญที่ทำ ROAS สูงสุด 3 อันดับแรกของแต่ละเดือน)",
+          "เตรียมชุดไฟล์ SQL ที่เขียนมาทั้งหมด จัดระเบียบคอมเมนต์ในโค้ดให้สวยงาม",
+          "Workshop 2 ชม.: Mini Project จบเดือนที่ 1: เขียนสคริปต์ SQL วิเคราะห์ Performance การตลาดครบวงจร เก็บขึ้น GitHub/Drive",
+          "Special Day 🏊‍♀️: ไปเล่นน้ำ/ว่ายน้ำประจำเดือน! ให้รางวัลตัวเองที่จบคอร์ส SQL ได้สำเร็จ"
+        ]
+      },
+      {
+        week: 5, month: 2, title: "สัปดาห์ที่ 5: Power Query (Data Cleaning & Transformation)",
+        tasks: [
+          "ทบทวน/ฝึกนำเข้าข้อมูลหลายรูปแบบ (CSV, Excel, Folder) และการจัดการ Data Types ใน Power Query",
+          "ฝึก Unpivot Columns (แก้ตารางที่เก็บวันที่หรือเดือนเรียงเป็นแนวนอน) และ Split Columns",
+          "ฝึก Merge Queries (เทียบเท่า JOIN ใน SQL) และ Append Queries (เทียบเท่า UNION)",
+          "เรียนการสร้าง Conditional Column และการจัดการ Error / ค่าว่างใน Power Query",
+          "ฝึกจัดการโครงสร้างโฟลเดอร์ เพื่อดึงไฟล์ยอดขาย/ต้นทุนรายเดือนมารวมกันอัตโนมัติ",
+          "Workshop 2 ชม.: นำชุดข้อมูลดิบมาคลีนใน Power Query จนได้ตารางที่สะอาดพร้อมใช้งาน",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 6, month: 2, title: "สัปดาห์ที่ 6: Data Modeling (หัวใจสำคัญของสาย Data Analyst)",
+        tasks: [
+          "เรียนแนวคิด Fact Table (ตารางเหตุการณ์/ตัวเลข) vs Dimension Table (ตารางคำอธิบาย)",
+          "เรียนโครงสร้าง Star Schema และการลากเส้น Relationship (1-to-Many, Cross-filter direction)",
+          "สร้าง Calendar Table (Date Table) แบบมาตรฐาน เพื่อใช้ทำการวิเคราะห์ตามช่วงเวลา",
+          "เรียนวิธีแก้ปัญหาโมเดลพัง เช่น Many-to-Many หรือการมีตาราง Fact หลายตาราง",
+          "ตรวจสอบความถูกต้องของ Data Model และซ่อนคอลัมน์ที่ไม่จำเป็นเพื่อความสะอาดของระบบ",
+          "Workshop 2 ชม.: ขึ้นโครงสร้าง Star Schema ให้กับโปรเจกต์พอร์ตโฟลิโอ เชื่อมตารางยอดขาย ต้นทุน แคมเปญ และปฏิทิน",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 7, month: 2, title: "สัปดาห์ที่ 7: DAX ขั้นพื้นฐานถึงระดับกลาง (สร้างสูตรคำนวณธุรกิจ)",
+        tasks: [
+          "เข้าใจความต่างของ Calculated Column vs Measure + เขียน Measure พื้นฐาน (SUM, AVERAGE, DISTINCTCOUNT, DIVIDE)",
+          "เรียนพระเอกของ DAX: ฟังก์ชัน CALCULATE() และเข้าใจเรื่อง Filter Context",
+          "เรียนฟังก์ชัน ALL(), ALLEXCEPT() เพื่อคำนวณสัดส่วนเปอร์เซ็นต์เทียบยอดรวม",
+          "เรียน Time Intelligence DAX (TOTALYTD, SAMEPERIODLASTYEAR, DATEADD) เทียบยอดขาย YoY และ MoM",
+          "เขียน DAX คำนวณ Marketing Metrics ที่เรียนในเดือนแรก (CTR, CVR, ROAS, CAC, Gross Margin)",
+          "Workshop 2 ชม.: สร้างตารางเก็บ Measures ทั้งหมดในโปรเจกต์ Power BI และทดสอบความถูกต้องของตัวเลขทุกสูตร",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 8, month: 2, title: "สัปดาห์ที่ 8: Dashboard Design, Storytelling & จบโปรเจกต์พอร์ตโฟลิโอ",
+        tasks: [
+          "เรียนหลักการจัดวาง Layout (Visual Hierarchy) การเลือกใช้กราฟให้ถูกประเภทข้อมูล และการคุมโทนสี",
+          "สร้างส่วน KPI Cards ด้านบนสุด (แสดงยอดขาย, ต้นทุน, ROAS, % การเติบโต) และใส่ Slicers",
+          "สร้างกราฟเจาะลึก (Trend รายเดือน, ประสิทธิภาพแยกตามช่องทาง, สินค้าที่ทำกำไรสูงสุด)",
+          "เพิ่มลูกเล่น Interactive เช่น Bookmarks, Buttons, และ Tooltip Pages ให้ Dashboard ดูเป็นมืออาชีพ",
+          "เขียนสรุป Key Insights & Recommendations (ธุรกิจควรปรับลดงบตัวไหน หรือดันสินค้าตัวไหนต่อ)",
+          "Workshop 2 ชม.: Final Project จบเดือนที่ 2: ตกแต่ง Dashboard ขั้นสุดท้าย แคปหน้าจอและอัดวิดีโอสั้นๆ เก็บเข้าพอร์ต",
+          "Special Day 🏊‍♀️: ไปเล่นน้ำ/ว่ายน้ำประจำเดือน! ฉลองให้กับ Dashboard สุดปังฝีมือตัวเอง"
+        ]
+      },
+      {
+        week: 9, month: 3, title: "สัปดาห์ที่ 9: Web Tracking, UTM & Google Analytics (GA4)",
+        tasks: [
+          "เรียนรู้โครงสร้าง UTM Parameters (utm_source, medium, campaign, content) และการทำตารางคุมลิงก์แคมเปญ",
+          "สร้าง UTM Builder Template ใน Google Sheets (ใช้สูตรผูกข้อความอัตโนมัติเพื่อลดความผิดพลาด)",
+          "เรียนพื้นฐาน Google Analytics 4 (GA4): เข้าใจคำว่า Users, Sessions, Events, และ Conversions",
+          "เรียนเรื่อง Attribution Models ใน GA4 และการดูรายงาน Traffic Acquisition",
+          "เรียนพื้นฐาน Google Tag Manager (GTM) ให้เข้าใจหลักการว่าติด Tag เก็บข้อมูลบนเว็บไซต์ (เช่น WordPress) อย่างไร",
+          "Workshop 2 ชม.: สำรวจ GA4 Demo Account และออกแบบระบบชีตจัดการ UTM Tracking สำหรับองค์กร",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 10, month: 3, title: "สัปดาห์ที่ 10: Looker Studio & Marketing Workflow Automation",
+        tasks: [
+          "เชื่อมต่อข้อมูลจาก Google Sheets และ GA4 เข้าสู่ Looker Studio",
+          "ฝึกทำ Data Blending (การรวมข้อมูลคนละแหล่งใน Looker Studio) และสร้าง Calculated Fields",
+          "เรียนแนวคิด Workflow Automation ด้วยเครื่องมืออย่าง Make.com หรือ Zapier",
+          "ทดลองสร้าง Flow อัตโนมัติ: เมื่อมีคนกรอกฟอร์มบนเว็บ (Lead) -> ส่งเข้า Google Sheets -> แจ้งเตือนเข้า LINE/Email",
+          "เรียนรู้โครงสร้างระบบ CRM & Lead Management (การจัดการสถานะลูกค้าตั้งแต่ทักแชทจนปิดการขาย)",
+          "Workshop 2 ชม.: สร้าง Automated Marketing Dashboard ใน Looker Studio 1 หน้า ดึงข้อมูลจาก Sheets แบบเรียลไทม์",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 11, month: 3, title: "สัปดาห์ที่ 11: รวบรวม Portfolio & ปรับโฉม Resume",
+        tasks: [
+          "รวบรวมโปรเจกต์ทั้ง 3 ชิ้น (SQL, Power BI, Looker/MarTech) มาเขียนคำอธิบายด้วยโครงสร้าง STAR Method",
+          "นำโปรเจกต์ทั้งหมดจัดลงหน้าเว็บ Portfolio หรือทำเป็นสไลด์ PDF ที่เปิดดูง่ายและสวยงาม",
+          "รื้อ Resume ใหม่: เปลี่ยนคำบรรยายงานเดิม 4 ปี ให้เน้นคำว่า Data Pipeline, Cost Calculation, Process Optimization",
+          "เขียนสรุปจุดแข็ง (Summary Profile) บนหัวเรซูเม่ โชว์จุดเด่นลูกผสม 'วิศวกรรม + การตลาด + Data'",
+          "อัปเดตโปรไฟล์ LinkedIn และเว็บหางาน (JobsDB, JobThai) ให้ตรงกับเรซูเม่ใหม่",
+          "Workshop 2 ชม.: ซ้อมทำข้อสอบ TOEIC เสมือนจริง จับเวลาเพื่อเช็กความก้าวหน้า",
+          "พักผ่อนสมอง / ทบทวนศัพท์ภาษาอังกฤษ 20 นาที"
+        ]
+      },
+      {
+        week: 12, month: 3, title: "สัปดาห์ที่ 12: เตรียมตัวสัมภาษณ์งาน & ก้าวสู่เส้นทางใหม่",
+        tasks: [
+          "เตรียมคำตอบสัมภาษณ์งานคำถามคลาสสิก (แนะนำตัว, ทำไมถึงเปลี่ยนสายงานมาทำ Data/MktOps) ทั้งไทยและอังกฤษ",
+          "ซ้อมอธิบายโปรเจกต์ใน Portfolio ให้จบภายใน 3-5 นาที แบบเข้าใจง่ายและเน้นผลลัพธ์ทางธุรกิจ",
+          "ทบทวนคำศัพท์การตลาดและสูตรคำนวณทั้งหมด (ROAS, CAC, LTV, CTR, SQL Joins) เผื่อเจอ Technical Test",
+          "คัดเลือกบริษัทและตำแหน่งงานเป้าหมาย (Marketing Operations, Business Data Analyst) จำนวน 5-10 ที่",
+          "ปรับแต่ง Cover Letter และกดส่งใบสมัครงานล็อตแรก!",
+          "Workshop 2 ชม.: ทบทวนข้อผิดพลาดจากชุดข้อสอบ TOEIC หรือไปสอบจริง / เตรียมชุดสุภาพสำหรับวันสัมภาษณ์งาน",
+          "Special Day 🏊‍♀️: ไปเล่นน้ำ/ว่ายน้ำฉลองครบ 3 เดือน! ขอบคุณตัวเองที่อดทนและมีวินัยมาจนถึงจุดนี้ครับ"
+        ]
+      }
+    ];
+
+    // State Management
+    const STORAGE_KEY = 'gif_90day_career_tracker_v1';
+    let progressState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    let currentWeek = 1;
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progressState));
+      renderAll();
+    }
+
+    function getDayState(dayNumber) {
+      if (!progressState[dayNumber]) {
+        progressState[dayNumber] = { m: false, e: false, n: false, b: false, study: false };
+      }
+      return progressState[dayNumber];
+    }
+
+    function toggleCheck(dayNumber, field) {
+      const state = getDayState(dayNumber);
+      state[field] = !state[field];
+      // Sync night routine checkbox with study task if desired, or keep independent
+      saveState();
+    }
+
+    function selectMonth(monthNum) {
+      const firstWeekOfMonth = (monthNum - 1) * 4 + 1;
+      selectWeek(firstWeekOfMonth);
+    }
+
+    function selectWeek(weekNum) {
+      currentWeek = weekNum;
+      renderAll();
+    }
+
+    function checkAllWeek() {
+      const startDay = (currentWeek - 1) * 7 + 1;
+      for (let i = 0; i < 7; i++) {
+        const d = startDay + i;
+        progressState[d] = { m: true, e: true, n: true, b: true, study: true };
+      }
+      saveState();
+    }
+
+    function resetCurrentWeek() {
+      if (!confirm('ต้องการล้างข้อมูลที่ติ๊กไว้ของสัปดาห์ที่ ' + currentWeek + ' ใช่ไหมครับ?')) return;
+      const startDay = (currentWeek - 1) * 7 + 1;
+      for (let i = 0; i < 7; i++) {
+        const d = startDay + i;
+        progressState[d] = { m: false, e: false, n: false, b: false, study: false };
+      }
+      saveState();
+    }
+
+    function calculateDayScore(dayNumber) {
+      const s = getDayState(dayNumber);
+      let count = 0;
+      if (s.m) count++;
+      if (s.e) count++;
+      if (s.n) count++;
+      if (s.b) count++;
+      if (s.study) count++;
+      return count; // Out of 5
+    }
+
+    function renderControls() {
+      const weekObj = weeksData.find(w => w.week === currentWeek);
+      const activeMonth = weekObj.month;
+
+      // Highlight Month Buttons
+      [1, 2, 3].forEach(m => {
+        const btn = document.getElementById('monthBtn' + m);
+        if (m === activeMonth) {
+          btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm";
+        } else {
+          btn.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200";
+        }
+      });
+
+      // Populate Week Dropdown
+      const select = document.getElementById('weekSelect');
+      select.innerHTML = weeksData.map(w =>
+        `<option value="${w.week}" ${w.week === currentWeek ? 'selected' : ''}>${w.title}</option>`
+      ).join('');
+
+      // Update Right Info Box
+      document.getElementById('monthBadge').textContent = monthsInfo[activeMonth].name;
+      document.getElementById('weekTitleDisplay').textContent = weekObj.title;
+      document.getElementById('monthGoalDisplay').textContent = monthsInfo[activeMonth].goal;
+    }
+
+    function renderWeeklyChart() {
+      const chartContainer = document.getElementById('weeklyChart');
+      const startDay = (currentWeek - 1) * 7 + 1;
+      let totalWeekPoints = 0;
+
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const dayNum = startDay + i;
+        const score = calculateDayScore(dayNum);
+        totalWeekPoints += score;
+        const pct = Math.round((score / 5) * 100);
+        const routine = dailyRoutineTemplate[i];
+
+        const barColor = pct === 100 ? 'bg-emerald-500' : (pct > 0 ? 'bg-indigo-500' : 'bg-slate-200');
+
+        html += `
+          <div class="flex flex-col items-center h-full justify-end group">
+            <span class="text-[11px] font-bold ${pct === 100 ? 'text-emerald-600' : 'text-slate-500'} mb-1">${score}/5</span>
+            <div class="w-full max-w-[38px] bg-slate-100 rounded-t-lg h-28 flex items-end overflow-hidden p-0.5">
+              <div class="w-full ${barColor} rounded-t-md bar-fill" style="height: ${Math.max(pct, 6)}%"></div>
+            </div>
+            <span class="text-xs font-semibold text-slate-700 mt-2">${routine.short}</span>
+            <span class="text-[10px] text-slate-400">Day ${dayNum}</span>
+          </div>
+        `;
+      }
+
+      chartContainer.innerHTML = html;
+      const weekPercent = Math.round((totalWeekPoints / 35) * 100);
+      document.getElementById('weekScoreText').textContent = `${weekPercent}% (${totalWeekPoints}/35)`;
+    }
+
+    function renderMiniGridAndKPIs() {
+      let totalStudyDone = 0;
+      let totalPointsAll = 0;
+      const maxPointsAll = 84 * 5;
+
+      // Calculate Streak (consecutive days with at least 1 item checked)
+      let currentStreak = 0;
+      let bestStreak = 0;
+      for (let d = 1; d <= 84; d++) {
+        const s = getDayState(d);
+        const dayPts = calculateDayScore(d);
+        totalPointsAll += dayPts;
+        if (s.study) totalStudyDone++;
+
+        if (dayPts > 0) {
+          currentStreak++;
+          if (currentStreak > bestStreak) bestStreak = currentStreak;
+        } else {
+          currentStreak = 0;
+        }
+      }
+
+      document.getElementById('streakCount').textContent = bestStreak;
+      document.getElementById('studyDoneCount').textContent = totalStudyDone;
+      const overallPct = Math.round((totalPointsAll / maxPointsAll) * 100);
+      document.getElementById('overallPercent').textContent = overallPct + '%';
+      document.getElementById('overallBar').style.width = overallPct + '%';
+
+      // Render 12-week mini buttons
+      const miniGrid = document.getElementById('twelveWeekMiniGrid');
+      let completedWeeks = 0;
+      let gridHtml = '';
+
+      for (let w = 1; w <= 12; w++) {
+        const startD = (w - 1) * 7 + 1;
+        let wPts = 0;
+        for (let i = 0; i < 7; i++) {
+          wPts += calculateDayScore(startD + i);
+        }
+        const wPct = Math.round((wPts / 35) * 100);
+        if (wPct >= 80) completedWeeks++;
+
+        const isCurrent = w === currentWeek;
+        let bgClass = 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+        if (wPct === 100) bgClass = 'bg-emerald-500 text-white font-bold';
+        else if (wPct > 0) bgClass = 'bg-indigo-100 text-indigo-700 font-semibold';
+
+        const ringClass = isCurrent ? 'ring-2 ring-indigo-600 ring-offset-1' : '';
+
+        gridHtml += `
+          <button onclick="selectWeek(${w})" class="py-1.5 rounded-lg text-xs transition ${bgClass} ${ringClass}" title="สัปดาห์ที่ ${w}: ${wPct}%">
+            W${w}
+          </button>
+        `;
+      }
+      miniGrid.innerHTML = gridHtml;
+      document.getElementById('completedWeeksCount').textContent = `${completedWeeks}/12 สัปดาห์`;
+    }
+
+    function renderChecklistCards() {
+      const container = document.getElementById('daysContainer');
+      const weekObj = weeksData.find(w => w.week === currentWeek);
+      const startDay = (currentWeek - 1) * 7 + 1;
+
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const dayNum = startDay + i;
+        const routine = dailyRoutineTemplate[i];
+        const taskText = weekObj.tasks[i];
+        const state = getDayState(dayNum);
+        const dayScore = calculateDayScore(dayNum);
+        const isComplete = dayScore === 5;
+
+        // Special Sunday Week 4, 8, 12 swimming text adjustment
+        let eveningRoutineText = routine.e;
+        if (i === 6) {
+          if (currentWeek % 4 === 0) {
+            eveningRoutineText = "🏊‍♀️ 18:30 ไปเล่นน้ำ/ว่ายน้ำฉลองจบเดือน!";
+          } else {
+            eveningRoutineText = "🍃 18:30 พักผ่อนตามอัธยาศัย";
+          }
+        }
+
+        html += `
+          <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border transition-all ${isComplete ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200/80'}">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${isComplete ? 'bg-emerald-500 text-white' : 'bg-indigo-100 text-indigo-700'}">
+                  Day ${dayNum}
+                </span>
+                <h3 class="font-bold text-slate-800 text-base">วัน${routine.dayName}</h3>
+                ${isComplete ? '<span class="text-xs text-emerald-600 font-semibold">✨ ภารกิจวันนี้ครบสมบูรณ์!</span>' : ''}
+              </div>
+              <div class="text-xs font-medium text-slate-400">
+                ความสำเร็จรายวัน: <span class="font-bold text-slate-700">${dayScore}/5</span>
+              </div>
+            </div>
+
+            <!-- Main Upskill Task (Highlighted) -->
+            <div class="mt-3">
+              <label class="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition ${state.study ? 'bg-emerald-50/70 border border-emerald-200' : 'bg-indigo-50/60 hover:bg-indigo-50 border border-indigo-100'}">
+                <input type="checkbox" class="hidden custom-checkbox" ${state.study ? 'checked' : ''} onchange="toggleCheck(${dayNum}, 'study')">
+                <div class="w-5 h-5 rounded-md border-2 border-indigo-400 bg-white flex items-center justify-center shrink-0 mt-0.5 transition">
+                  <svg class="w-3.5 h-3.5 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div class="flex-1">
+                  <div class="text-[11px] font-bold uppercase tracking-wide text-indigo-600">🎯 ภารกิจอัปสกิลประจำวัน</div>
+                  <div class="text-sm font-medium text-slate-800 mt-0.5 ${state.study ? 'line-through text-slate-400' : ''}">${taskText}</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- 4 Daily Self-Love Habits Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
+              ${renderHabitCheckbox(dayNum, 'm', 'เช้า (08:00-08:30)', routine.m, state.m)}
+              ${renderHabitCheckbox(dayNum, 'e', 'เย็น (18:30-19:30)', eveningRoutineText, state.e)}
+              ${renderHabitCheckbox(dayNum, 'n', 'ค่ำ (20:30-21:30)', routine.n, state.n)}
+              ${renderHabitCheckbox(dayNum, 'b', 'ก่อนนอน (21:30-21:50)', routine.b, state.b)}
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderHabitCheckbox(dayNum, key, timeLabel, desc, isChecked) {
+      return `
+        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${isChecked ? 'bg-slate-50 border-slate-200 text-slate-400' : 'bg-white border-slate-200 hover:border-slate-300'}">
+          <input type="checkbox" class="hidden custom-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCheck(${dayNum}, '${key}')">
+          <div class="w-4 h-4 rounded border border-slate-300 bg-white flex items-center justify-center shrink-0 mt-0.5 transition">
+            <svg class="w-3 h-3 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <div class="text-xs leading-snug">
+            <div class="font-semibold text-[10px] text-slate-400">${timeLabel}</div>
+            <div class="${isChecked ? 'line-through' : 'text-slate-700 font-medium'} mt-0.5">${desc}</div>
+          </div>
+        </label>
+      `;
+    }
+
+    function renderAll() {
+      renderControls();
+      renderWeeklyChart();
+      renderMiniGridAndKPIs();
+      renderChecklistCards();
+    }
+
+    // Initialize on load
+    renderAll();
+  </script>
+</body>
+</html>
